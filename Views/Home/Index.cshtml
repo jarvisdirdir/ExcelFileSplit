@@ -1,0 +1,56 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+<div ng-app="app" ng-controller="ItemController" id="ID1">
+    <div class="text-center">
+        <h1 class="display-4">Welcome</h1>
+        <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+        <a>{{aaa}}</a>
+        <button type="button" ng-click="GetExcelMutiData()">匯出多檔excel</button>
+    </div>
+</div>
+<script>
+    var myApp = angular.module('app', []);
+    myApp.controller('ItemController', ['$scope', '$http', function ($scope, $http) {
+        $scope.aaa = 'Hola!';
+        var url = '/Home/ExportMulitExcel', data = {}, config = 'json';
+        $scope.GetExcelMutiData = function () {
+            function dataURLtoFile(dataurl, filename) {
+                var arr = dataurl.split(','),
+                    mime = arr[0].match(/:(.*?);/)[1],
+                    bstr = atob(arr[1]),
+                    n = bstr.length,
+                    u8arr = new Uint8Array(n);
+                while (n--) {
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                return new File([u8arr], filename, { type: mime });
+            }
+
+            function download(file) {
+                const link = document.createElement('a')
+                const url = URL.createObjectURL(file)
+
+                link.href = url
+                link.download = file.name
+                document.body.appendChild(link)
+                link.click()
+
+                document.body.removeChild(link)
+                window.URL.revokeObjectURL(url)
+            }
+
+
+            $http.post(url, data, config).then(function (response) {
+                console.log("123");
+                if (response) {
+                    for (var i = 0; i < response.data.length; i++) {
+                        var file = dataURLtoFile('data:application/vnd.ms-excel;base64,' + response.data[i].base64Data, response.data[i].fileName);
+                        download(file);
+                    }
+                }
+            });
+
+        };
+    }]);
+</script>
